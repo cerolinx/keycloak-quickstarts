@@ -22,6 +22,10 @@ import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.RealmProvider;
+import org.keycloak.models.UserModel;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,12 +35,21 @@ import java.util.Set;
  */
 public class SysoutEventListenerProvider implements EventListenerProvider {
 
+    private final KeycloakSession session;
+    private final RealmProvider model;
+//    public SysoutEventListenerProvider(KeycloakSession session) {
+//        this.session = session;
+//        this.model = session.realms();
+//    }
+
     private Set<EventType> excludedEvents;
     private Set<OperationType> excludedAdminOperations;
 
-    public SysoutEventListenerProvider(Set<EventType> excludedEvents, Set<OperationType> excludedAdminOpearations) {
+    public SysoutEventListenerProvider(KeycloakSession session, Set<EventType> excludedEvents, Set<OperationType> excludedAdminOpearations) {
         this.excludedEvents = excludedEvents;
         this.excludedAdminOperations = excludedAdminOpearations;
+        this.session = session;
+        this.model = session.realms();
     }
 
     @Override
@@ -46,6 +59,22 @@ public class SysoutEventListenerProvider implements EventListenerProvider {
             return;
         } else {
             System.out.println("EVENT: " + toString(event));
+
+            if (EventType.REGISTER.equals(event.getType())) {
+                RealmModel realm = this.model.getRealm(event.getRealmId());
+                UserModel user = this.session.users().getUserById(realm, event.getUserId());
+                if (user != null) {
+                    //log.info("NEW USER HAS REGISTERED : " + event.getUserId());
+
+                    user.setEnabled(false);
+
+                    // enlistPrepare -> if our transaction fails than the user is NOT verified
+                    // enlist -> if our transaction fails than the user is still verified
+                    // enlistAfterCompletion -> if our transaction fails our user is still verified
+
+                    //session.getTransactionManager().enlistPrepare(userVerifiedTransaction);
+                }
+            }
         }
     }
 

@@ -38,7 +38,7 @@ public class SysoutEventListenerProviderFactory implements EventListenerProvider
 
     @Override
     public EventListenerProvider create(KeycloakSession session) {
-        return new SysoutEventListenerProvider(excludedEvents, excludedAdminOperations);
+        return new SysoutEventListenerProvider(session, excludedEvents, excludedAdminOperations);
     }
 
     @Override
