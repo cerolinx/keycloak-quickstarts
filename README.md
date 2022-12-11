@@ -1,5 +1,8 @@
 # <span>Keycloak</span> Quickstarts
 
+cd event-listener-sysout
+mvn package -DskipTests -Dwildfly.skip=true -Dversion.keycloak=16.1.0
+
 <span>Keycloak</span> is an Open Source Identity and Access Management solution for modern Applications and Services.
 
 The quickstarts demonstrate securing applications with <span>Keycloak</span>. They provide small, specific, working examples

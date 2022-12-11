@@ -26,6 +26,9 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
 import org.keycloak.models.UserModel;
+import org.keycloak.storage.adapter.InMemoryUserAdapter;
+import org.keycloak.email.EmailException;
+import org.keycloak.email.EmailSenderProvider;
 
 import java.util.Map;
 import java.util.Set;
@@ -64,15 +67,25 @@ public class SysoutEventListenerProvider implements EventListenerProvider {
                 RealmModel realm = this.model.getRealm(event.getRealmId());
                 UserModel user = this.session.users().getUserById(realm, event.getUserId());
                 if (user != null) {
-                    //log.info("NEW USER HAS REGISTERED : " + event.getUserId());
+                    System.out.println("NEW USER HAS REGISTERED : " + event.getUserId());
 
                     user.setEnabled(false);
 
-                    // enlistPrepare -> if our transaction fails than the user is NOT verified
-                    // enlist -> if our transaction fails than the user is still verified
-                    // enlistAfterCompletion -> if our transaction fails our user is still verified
-
-                    //session.getTransactionManager().enlistPrepare(userVerifiedTransaction);
+                    UserModel admin = new InMemoryUserAdapter(this.session, realm, "-1");
+                    String emailAdmin = "mauriziocerolini@alia-space.com";
+                    admin.setEmail(emailAdmin);
+                    System.out.println("EmailFormActionFactory success, sent email to " + emailAdmin + " mentioning that " + user.getEmail() + " has registered!" );
+                    EmailSenderProvider emailSender = session.getProvider(EmailSenderProvider.class);
+                    try {
+                        emailSender.send(realm.getSmtpConfig(), admin, "Self Registration with Keycloak", "Hi Admin, a new user ["+event.getUserId()+"] with the email "
+                                        + user.getEmail() + " has just registered with keycloak! " +
+                                        "This is an automatic notice.",
+                                "<h3>Hi Admin,</h3>" +
+                                        "<p>a new user ["+event.getUserId()+"] with the email " + user.getEmail() + " has just registered with keycloak! </p>" +
+                                        "<p>This is an automatic notice." );
+                    } catch (EmailException e) {
+                        System.out.println("EmailFormActionFactory success, could not send notification to admin: " +e);
+                    }
                 }
             }
         }
