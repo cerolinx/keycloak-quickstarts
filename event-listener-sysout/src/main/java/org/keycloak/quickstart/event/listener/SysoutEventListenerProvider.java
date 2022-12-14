@@ -72,17 +72,19 @@ public class SysoutEventListenerProvider implements EventListenerProvider {
                     user.setEnabled(false);
 
                     UserModel admin = new InMemoryUserAdapter(this.session, realm, "-1");
-                    String emailAdmin = "mauriziocerolini@alia-space.com";
+                    String emailAdmin = "gianpieroizzo@alia-space.com";
                     admin.setEmail(emailAdmin);
                     System.out.println("EmailFormActionFactory success, sent email to " + emailAdmin + " mentioning that " + user.getEmail() + " has registered!" );
                     EmailSenderProvider emailSender = session.getProvider(EmailSenderProvider.class);
                     try {
-                        emailSender.send(realm.getSmtpConfig(), admin, "Self Registration with Keycloak", "Hi Admin, a new user ["+event.getUserId()+"] with the email "
-                                        + user.getEmail() + " has just registered with keycloak! " +
+                        emailSender.send(realm.getSmtpConfig(), admin, "Self Registration with Keycloak", "Hi Admin, a new user with the email "
+                                        + user.getEmail() + " has just registered with keycloak! \n" +
+                                        "To enable user go to https://keycloak.alia-space.com/auth/admin/master/console/#/realms/" + event.getRealmId() + "/users/" + event.getUserId() + " \n" +
                                         "This is an automatic notice.",
                                 "<h3>Hi Admin,</h3>" +
-                                        "<p>a new user ["+event.getUserId()+"] with the email " + user.getEmail() + " has just registered with keycloak! </p>" +
-                                        "<p>This is an automatic notice." );
+                                        "<p>a new user with the email " + user.getEmail() + " has just registered with keycloak! </p>" +
+                                        "<p>To enable user go to <a href=\"https://keycloak.alia-space.com/auth/admin/master/console/#/realms/" + event.getRealmId() + "/users/" + event.getUserId() + "\">user configuration</a></p>" +
+                                        "<p><p>This is an automatic notice." );
                     } catch (EmailException e) {
                         System.out.println("EmailFormActionFactory success, could not send notification to admin: " +e);
                     }
